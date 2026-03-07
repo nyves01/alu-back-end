@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Gather TODO list progress for a specific employee from a REST API."""
+"""Export a specific employee's TODO list to JSON format."""
 
 import json
 import sys
@@ -30,26 +30,33 @@ def get_user_todos(user_id):
 def main():
     """Program entry point."""
     if len(sys.argv) != 2:
+        print("Usage: {} <employee_id>".format(sys.argv[0]), file=sys.stderr)
         sys.exit(1)
 
-    user_id = sys.argv[1]
+    try:
+        user_id = int(sys.argv[1])
+    except ValueError:
+        print("employee_id must be an integer", file=sys.stderr)
+        sys.exit(1)
 
     user = get_user(user_id)
     todos = get_user_todos(user_id)
 
-    employee_name = user.get("name")
-    completed_tasks = [task for task in todos if task.get("completed")]
+    username = user.get("username")
+    file_name = "{}.json".format(user_id)
 
-    print(
-        "Employee {} is done with tasks({}/{}):".format(
-            employee_name,
-            len(completed_tasks),
-            len(todos)
-        )
-    )
+    user_tasks = []
+    for task in todos:
+        user_tasks.append({
+            "task": task.get("title"),
+            "completed": task.get("completed"),
+            "username": username
+        })
 
-    for task in completed_tasks:
-        print("\t {}".format(task.get("title")))
+    payload = {str(user_id): user_tasks}
+
+    with open(file_name, "w") as json_file:
+        json.dump(payload, json_file)
 
 
 if __name__ == "__main__":

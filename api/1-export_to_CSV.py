@@ -1,6 +1,7 @@
 #!/usr/bin/python3
-"""Gather TODO list progress for a specific employee from a REST API."""
+"""Export a specific employee's TODO list to CSV format."""
 
+import csv
 import json
 import sys
 import urllib.parse
@@ -30,26 +31,30 @@ def get_user_todos(user_id):
 def main():
     """Program entry point."""
     if len(sys.argv) != 2:
+        print("Usage: {} <employee_id>".format(sys.argv[0]), file=sys.stderr)
         sys.exit(1)
 
-    user_id = sys.argv[1]
+    try:
+        user_id = int(sys.argv[1])
+    except ValueError:
+        print("employee_id must be an integer", file=sys.stderr)
+        sys.exit(1)
 
     user = get_user(user_id)
     todos = get_user_todos(user_id)
 
-    employee_name = user.get("name")
-    completed_tasks = [task for task in todos if task.get("completed")]
+    username = user.get("username")
+    file_name = "{}.csv".format(user_id)
 
-    print(
-        "Employee {} is done with tasks({}/{}):".format(
-            employee_name,
-            len(completed_tasks),
-            len(todos)
-        )
-    )
-
-    for task in completed_tasks:
-        print("\t {}".format(task.get("title")))
+    with open(file_name, "w", newline="") as csv_file:
+        writer = csv.writer(csv_file, quoting=csv.QUOTE_ALL)
+        for task in todos:
+            writer.writerow([
+                user_id,
+                username,
+                task.get("completed"),
+                task.get("title")
+            ])
 
 
 if __name__ == "__main__":
