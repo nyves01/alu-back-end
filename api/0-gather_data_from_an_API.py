@@ -9,15 +9,20 @@ if __name__ == "__main__":
     employee_id = int(sys.argv[1])
 
     base = "https://jsonplaceholder.typicode.com"
-    user = requests.get("{}/users/{}".format(base, employee_id)).json()
-    todos = requests.get("{}/todos".format(base),
-                         params={"userId": employee_id}).json()
 
-    name = user.get("name")
-    done = [t for t in todos if t.get("completed")]
+    all_users = requests.get("{}/users".format(base)).json()
+    all_todos = requests.get("{}/todos".format(base)).json()
+
+    name = None
+    for user in all_users:
+        if user["id"] == employee_id:
+            name = user["name"]
+
+    todos = [t for t in all_todos if t["userId"] == employee_id]
+    done = [t for t in todos if t["completed"]]
 
     print("Employee {} is done with tasks({}/{}):".format(
         name, len(done), len(todos)))
 
     for task in done:
-        print("\t {}".format(task.get("title")))
+        print("\t {}".format(task["title"]))
