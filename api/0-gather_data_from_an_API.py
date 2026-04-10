@@ -1,8 +1,9 @@
 #!/usr/bin/python3
 """Gather TODO list progress for a specific employee from a REST API."""
 
-import requests
+import json
 import sys
+import urllib.request
 
 
 if __name__ == "__main__":
@@ -10,8 +11,11 @@ if __name__ == "__main__":
 
     base = "https://jsonplaceholder.typicode.com"
 
-    all_users = requests.get("{}/users".format(base)).json()
-    all_todos = requests.get("{}/todos".format(base)).json()
+    with urllib.request.urlopen("{}/users".format(base)) as r:
+        all_users = json.loads(r.read().decode())
+
+    with urllib.request.urlopen("{}/todos".format(base)) as r:
+        all_todos = json.loads(r.read().decode())
 
     name = None
     for user in all_users:
